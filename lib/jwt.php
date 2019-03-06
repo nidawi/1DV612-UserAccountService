@@ -1,0 +1,73 @@
+<?php
+
+// Transcribed JWT module
+namespace lib;
+
+class jwt {
+
+  private static $header = array("alg" => "HS256", "typ" => "JWT");
+
+  public static function sign(array $payload) : string {
+    $basePayload = array_merge(
+      array(
+        "iss" => \Environment::JWT_ISS,
+        "iat" => time(),
+        "exp" => (time() + \Environment::JWT_EXPIRATION),
+      ), $payload
+    );
+
+    $_header = self::encode(self::$header);
+    $_payload = self::encode($basePayload);
+
+    return "$_header.$_payload." . self::createSignature($_header, $_payload);
+  }
+  public static function verify(string $jwt) : array {
+    $parts = explode(".", $jwt);
+    if (count($parts) !== 3)
+      throw new InvalidJWTException();
+
+    $header = self::decode($parts[0]);
+    if ($header !== self::$header) {
+      throw new InvalidJWTHeaderException();
+    }
+
+    $constructedSignature = self::createSignature($parts[0], $parts[1]);
+    $deliverySignature = $parts[2];
+
+    if (hash_equals($constructedSignature, $deliverySignature)) {
+      // Signature matches
+      $jsonPayload = self::decode($parts[1]);
+      if (isset($jsonPayload["exp"]) && ($jsonPayload["exp"] >= time())) {
+        // JWT has not expired.
+        return $jsonPayload;
+      } else throw new ExpiredJWTException();
+    } else throw new InvalidJWTSignatureException();
+  }
+
+
+  private static function encode(array $value) : string {
+    return self::base64url_encode(json_encode($value));
+  }
+  private static function decode(string $value) : array {
+    return json_decode(self::base64url_decode($value), true);
+  }
+
+  private static function createSignature(string $header, string $payload) : string {
+    $data = "$header.$payload";
+    $hmac = hash_hmac("sha256", $data, \Environment::JWT_SECRET, true);
+    return self::base64url_encode($hmac);
+  }
+
+  private static function base64url_encode($data) { 
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '='); 
+  }
+  private static function base64url_decode($data) { 
+    return base64_decode(strtr($data, '-_', '+/') . str_repeat('=', 3 - ( 3 + strlen( $data )) % 4 ));
+  } 
+}
+
+// Saving time and effort.
+class InvalidJWTHeaderException extends \Exception {}
+class InvalidJWTException extends \Exception {}
+class InvalidJWTSignatureException extends \Exception {}
+class ExpiredJWTException extends \Exception {}
