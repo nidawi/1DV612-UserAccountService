@@ -6,8 +6,6 @@ class GetAccountView {
 
   private $navigator;
 
-  private static $storedItemLink = "items";
-
   public function __construct(\view\Navigator $navigator) {
     $this->navigator = $navigator;
   }
@@ -22,7 +20,8 @@ class GetAccountView {
     $response = array_merge(
       $account->toArray(),
       array(
-        "_itemslink" => $this->createItemLink()
+        "_itemslink" => $this->createItemLink(),
+        "_contactlink" => $this->createContactLink()
       )
     );
     echo json_encode($response);
@@ -40,6 +39,9 @@ class GetAccountView {
   }
 
   private function createItemLink() : string {
-    return "/?" . $_SERVER["QUERY_STRING"] . "$" . self::$storedItemLink;
+    return "/?" . $_SERVER["QUERY_STRING"] . "&" . $this->navigator->getItemsLink();
+  }
+  private function createContactLink() : string {
+    return "/?" . $_SERVER["QUERY_STRING"] . "&" . $this->navigator->getContactsLink();
   }
 }

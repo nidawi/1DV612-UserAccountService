@@ -2,7 +2,7 @@
 
 namespace view;
 
-class ItemsView {
+class ContactView {
 
   private $navigator;
   private $body;
@@ -12,68 +12,77 @@ class ItemsView {
     $this->body = $this->getJSONBody();
   }
   
-  public function userWantsToAccessAccountItems() : bool {
-    return $this->navigator->isQueryPresent($this->navigator->getItemsLink());
+  public function userWantsToAccessContactMethods() : bool {
+    return $this->navigator->isQueryPresent($this->navigator->getContactsLink());
   }
-  public function userWantsToViewAccountItems() {
+  public function userWantsToViewContactMethods() : bool {
     return $this->navigator->isGET();
   }
-  public function userWantsToAddAccountItems() : bool {
+  public function userWantsToAddContactMethods() : bool {
     return $this->navigator->isPOST();
   }
-  public function userWantsToDeleteAccountItems() : bool {
+  public function userWantsToDeleteContactMethods() : bool {
     return $this->navigator->isDELETE();
   }
 
   public function getDesiredAccount() : string {
     return $this->navigator->getRelevantAccount();
   }
-  public function getItemsToAdd() : array {
-    $items = array_map(function ($item) {
-      return new \model\AccountStoredItem(array(
-        "eventType" => $item["eventType"] ?? "",
-        "data" => $this->encodeData($item["data"] ?? "")
-      ));
+  public function getSelectedMethodType() : string {
+    return $_GET[$this->navigator->getContactsLink()] ?? "";
+  }
+  public function getMethodsToAdd() : array {
+    $methods = array_map(function ($method) {
+      return new \model\AccountContact($method);
     }, $this->body);
-    return $items;
+    return $methods;
   }
 
 
-  public function itemRetrievalSuccessful(array $items) {
+  public function methodRetrievalSuccessful(array $items) {
     http_response_code(200);
 
     $result = array_map(function($it) {
-      return array_merge(
-        $it->toArray(),
-        array("data_type" => "base64url")
-      );
+      return $it->toArray();
     }, $items);
 
     echo json_encode($result);
   }
-  public function itemCreationSuccessful() {
+  public function methodCreationSuccessful() {
     http_response_code(201);
     echo "";
   }
-  public function itemDeletionSuccessful() {
+  public function methodDeletionSuccessful() {
     http_response_code(204);
     echo "";
   }
 
-  public function itemInteractionFailed($err) {
-    $message =  "Item Operation failed due to an unknown error.";
+  public function methodInteractionFailed($err) {
+    $message =  "Contact Method Operation failed due to an unknown error.";
     $code = 500;
     switch (true) {
       case $err instanceof \model\AccountDoesNotExistException:
         $message = "The requested account does not exist.";
         $code = 404;
         break;
+      case $err instanceof \model\ContactMethodAlreadyExistsException:
+        $message = "Contact Method already exists.";
+        $code = 400;
+        break;
+      case $err instanceof \model\ContactMethodDoesNotExistException:
+        $message = "Contact Method does not exist.";
+        $code = 404;
+        break;
       case $err instanceof \model\InvalidValueException:
-        $message = "Invalid Item value detected: '" . $err->getMessage() . "'.";
+        $message = "Invalid Contact Method value detected: '" . $err->getMessage() . "'.";
         $code = 400;
         break;
       case $err instanceof \view\NothingToAddException:
         $message = "Nothing to add.";
+        $code = 400;
+        break;
+      case $err instanceof \view\NothingToDeleteException:
+        $message = "Nothing to delete.";
         $code = 400;
         break;
       case $err instanceof \TypeError:
@@ -84,11 +93,11 @@ class ItemsView {
     $this->navigator->errorOccured($code, $message);
   }
 
-  private function areItemsProvided() : bool {
+  private function areMethodsProvided() : bool {
     return isset($this->body) && is_array($this->body);
   }
   private function getJSONBody() : array {
-    if ($this->userWantsToAddAccountItems()) {
+    if ($this->userWantsToAddContactMethods()) {
       try {
         $inputJSON = file_get_contents('php://input');
         $json = json_decode($inputJSON, TRUE);
@@ -96,16 +105,5 @@ class ItemsView {
       } catch (\Exception $err) { }
     }
     return array();
-  }
-
-  private function encodeData($data) {
-    if ($data !== "") {
-      $json = json_encode($data);
-      $encoded = $this->base64url_encode($json);
-      return $encoded;
-    }
-  }
-  private function base64url_encode($data) { 
-    return rtrim(strtr(base64_encode($data), '+/', '-_'), '='); 
   }
 }

@@ -9,6 +9,9 @@ class Navigator {
   private static $acceptedContentTypes = array("application/json", "text/html");
   private static $providedContentType = "application/json";
   
+  private static $accountItemsLink = "items";
+  private static $contactMethodLink = "contact";
+
   private $activeJwt;
 
   public function __construct() {
@@ -39,6 +42,13 @@ class Navigator {
   }
   public function isDELETE() : bool {
     return $this->isRequestMethod("DELETE");
+  }
+
+  public function getItemsLink() : string {
+    return self::$accountItemsLink;
+  }
+  public function getContactsLink() : string {
+    return self::$contactMethodLink;
   }
 
   public function isValidAPICall() : bool {

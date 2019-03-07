@@ -11,6 +11,8 @@ require_once 'lib/jwt.php';
 require_once 'model/AccountRegister.php'; // Also loads Accounts.php
 require_once 'model/ModelErrors.php';
 
+require_once 'view/ViewErrors.php';
+
 require_once 'controller/ApplicationController.php';
 
 // Create Necessary Objects

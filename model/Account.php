@@ -17,6 +17,7 @@ class Account {
   private $githubToken;
 
   private $storedItemCount;
+  private $contactMethods;
 
   public function __construct(array $accountData) {
     $this->username = $accountData["username"];
@@ -29,6 +30,7 @@ class Account {
     $this->githubToken = $accountData["githubToken"];
 
     $this->storedItemCount = $accountData["storedItemCount"];
+    $this->contactMethods = $accountData["contactMethods"];
   }
 
   public function getUsername() : string {
@@ -46,6 +48,7 @@ class Account {
     return array(
       "username" => $this->username,
       "storedItemCount" => $this->storedItemCount,
+      "contactMethods" => $this->contactMethods,
       "githubId" => $this->githubId,
       "githubToken" => $this->githubToken
     );

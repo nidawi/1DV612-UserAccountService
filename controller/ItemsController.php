@@ -23,7 +23,7 @@ class ItemsController {
       else
         $this->doGetItems($username);
 
-    } catch (Exception $err) {
+    } catch (\Exception $err) {
       $this->view->itemInteractionFailed($err);
     } catch (\Error $error) {
       $this->view->itemInteractionFailed($err);
@@ -36,6 +36,9 @@ class ItemsController {
   }
   private function doAddItems(string $username) {
     $itemsToAdd = $this->view->getItemsToAdd();
+    if (count($itemsToAdd) < 1)
+      throw new \view\NothingToAddException();
+
     $this->register->addAccountStoredItems($username, $itemsToAdd);
     $this->view->itemCreationSuccessful();
   }
