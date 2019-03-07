@@ -8,17 +8,24 @@ class AccountContact {
   private $type;
   private $value;
   private $enabled;
+  
+  private static $availableTypes = array(
+    "email"
+  );
 
   public function __construct(array $contactData) {
     $this->account = $contactData["account"] ?? "";
-    $this->setType($contactData["type"]);
-    $this->setValue($contactData["value"]);
+    $this->setType($contactData["type"] ?? "");
+    $this->setValue($contactData["value"] ?? "");
     $this->enabled = boolval($contactData["enabled"] ?? "");
   }
 
   public function setType(string $type) {
     if (!isset($type) || strlen($type) < 2)
       throw new InvalidValueException("type");
+    else if (!in_array($type, self::$availableTypes))
+      throw new InvalidValueException("type-typeof");
+    
     $this->type = $type;
   }
   public function setValue(string $data) {
