@@ -31,6 +31,9 @@ class AccountContact {
   public function setValue(string $data) {
     if (!isset($data) || strlen($data) < 2)
       throw new InvalidValueException("value");
+    else if (!$this->isValidValue($data))
+      throw new InvalidValueException("value-typeof");
+
     $this->value = $data;
   }
 
@@ -50,5 +53,11 @@ class AccountContact {
       "value" => $this->value,
       "enabled" => $this->enabled
     );
+  }
+
+  private function isValidValue($value) : bool {
+    if ($this->type === "email") {
+      return preg_match("/^.*@.*\..*$/", $value);
+    } else return true;
   }
 }
