@@ -20,6 +20,9 @@ class AccountCredentials {
   public function getUsername() : string {
     return $this->username;
   }
+  public function getPassword() : string {
+    return $this->password;
+  }
   public function getPasswordHash() : string {
     return password_hash($this->password, PASSWORD_BCRYPT);
   }

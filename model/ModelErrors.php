@@ -9,6 +9,9 @@ class PasswordTooLongException extends \Exception {}
 
 class AccountDoesNotExistException extends \Exception {}
 class AccountAlreadyExistsException extends \Exception {}
+class AccountCredentialsInvalidException extends \Exception {}
+class UpdateParamtersMissingException extends \Exception {}
+class NothingToCommitException extends \Exception {}
 
 class ContactMethodAlreadyExistsException extends \Exception {}
 class ContactMethodDoesNotExistException extends \Exception {}

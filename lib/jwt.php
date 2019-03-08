@@ -35,12 +35,22 @@ class jwt {
     $deliverySignature = $parts[2];
 
     if (hash_equals($constructedSignature, $deliverySignature)) {
-      // Signature matches
+      // Signature matches. Check iss, exp, aud.
       $jsonPayload = self::decode($parts[1]);
-      if (isset($jsonPayload["exp"]) && ($jsonPayload["exp"] >= time())) {
-        // JWT has not expired.
-        return $jsonPayload;
-      } else throw new ExpiredJWTException();
+
+      $expValid = isset($jsonPayload["exp"]) && ($jsonPayload["exp"] >= time());
+      if (!$expValid) throw new ExpiredJWTException();
+
+      $issValid = isset($jsonPayload["iss"]) && in_array($jsonPayload["iss"], \Environment::JWT_VALID_ISS);
+      if (!$issValid) throw new InvalidJWTIssuerException();
+
+      $audValid = isset($jsonPayload["aud"]) && (is_array($jsonPayload["aud"])
+        ? count(array_intersect($jsonPayload["aud"], \Environment::JWT_VALID_AUD)) > 0
+        : in_array($jsonPayload["aud"], \Environment::JWT_VALID_AUD));
+      if (!$audValid) throw new InvalidJWTAudienceException();
+
+      // JWT is valid.
+      return $jsonPayload;
     } else throw new InvalidJWTSignatureException();
   }
 
@@ -71,3 +81,5 @@ class InvalidJWTHeaderException extends \Exception {}
 class InvalidJWTException extends \Exception {}
 class InvalidJWTSignatureException extends \Exception {}
 class ExpiredJWTException extends \Exception {}
+class InvalidJWTAudienceException extends \Exception {}
+class InvalidJWTIssuerException extends \Exception {}

@@ -4,7 +4,6 @@ namespace model;
 
 require_once 'Account.php';
 require_once 'AccountCredentials.php';
-require_once 'AccountGithub.php';
 require_once 'AccountStoredItem.php';
 require_once 'AccountContact.php';
 
@@ -40,7 +39,6 @@ class AccountRegister {
     $argsArr = array($account->getUsername(), $account->getPasswordHash());
     $this->database->query('INSERT INTO ' . self::$accountsTableName . ' (username, password) VALUES (?, ?)', $argsArr);
   }
-
   public function getAccount(string $username) : \model\Account {
     if ($this->isUsernameFree($username))
       throw new AccountDoesNotExistException();
@@ -53,6 +51,60 @@ class AccountRegister {
     
     if (isset($result[0])) {
       return new \model\Account($result[0]);
+    }
+  }
+  public function authorizeAccount(\model\AccountCredentials $account) : \model\Account {
+    $fetchedAccount = $this->getAccount($account->getUsername());
+
+    if (isset($fetchedAccount) && $fetchedAccount->isPasswordMatch($account->getPassword())) {
+      return $fetchedAccount;
+    } else {
+      throw new AccountCredentialsInvalidException();
+    }
+  }
+  public function updateAccount(string $username, \model\Account $updates) {
+    // Currently only support updating GithubId and GithubToken.
+    $account = $this->getAccount($username);
+
+    if ($account->getGithubId() !== $updates->getGithubId() || $account->getGithubToken() !== $updates->getGithubToken()) {
+     $this->updateAccountGithubData($username, $updates);
+    }
+  }
+  public function updateAccountGithubData(string $username, \model\Account $updates) {
+    if ($updates->getGithubId() === "" && $updates->getGithubToken() === "") {
+      throw new UpdateParamtersMissingException();
+    }
+
+    $account = $this->getAccount($username);
+    if ($account->getGithubId() === $updates->getGithubId() && $account->getGithubToken() === $updates->getGithubToken()) {
+      throw new NothingToCommitException();
+    } else if ($account->getGithubId() === $updates->getGithubId() && $updates->getGithubToken() === "") {
+      throw new NothingToCommitException();
+    } else if ($account->getGithubId() === "" && $account->getGithubToken() === $updates->getGithubToken()) {
+      throw new NothingToCommitException();
+    }
+
+    if ($account->getGithubId() === "" && $account->getGithubToken() === "") {
+      // This means we need to ADD github data.
+      $addArgs = array($account->getUsername(), $updates->getGithubId(), $updates->getGithubToken());
+      $this->database->query("INSERT INTO " . self::$accountGithubTableName . " (account, githubId, githubToken) VALUES (?, ?, ?)", $addArgs);
+    } else {
+      // This means we need to UPDATE github data.
+      $partsArr = array();
+      $argsArr = array();
+
+      if ($updates->getGithubId() !== "") {
+        array_push($partsArr, "githubId=?");
+        array_push($argsArr, $updates->getGithubId());
+      }
+      if ($updates->getGithubToken() !== "") {
+        array_push($partsArr, "githubToken=?");
+        array_push($argsArr, $updates->getGithubToken());
+      }
+
+      $statement = implode($partsArr, ", ");
+      array_push($argsArr, $account->getUsername());
+      $this->database->query("UPDATE " . self::$accountGithubTableName . " SET $statement WHERE account=?", $argsArr);
     }
   }
 

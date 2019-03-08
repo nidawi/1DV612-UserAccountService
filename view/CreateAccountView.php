@@ -16,7 +16,7 @@ class CreateAccountView {
   }
 
   public function userWantsToCreateAccount() : bool {
-    return ($this->navigator->isValidAPICall() && $this->navigator->isPOST());
+    return ($this->navigator->isValidAPICall() && $this->navigator->isPOST() && $this->navigator->getRelevantAccount() === null);
   }
   public function getAccountCredentials() : \model\AccountCredentials {
     return new \model\AccountCredentials($this->getUsername(), $this->getPassword());

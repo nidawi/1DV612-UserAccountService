@@ -127,9 +127,11 @@ class Navigator {
       if ($this->isAuthorizationProvided()) {
         $token = preg_filter("/Bearer /", "", $_SERVER['HTTP_AUTHORIZATION']);
         $this->activeJwt = \lib\jwt::verify(($token));
+      } else {
+        $this->userIsUnauthorized();
       }
     } catch (\Exception $err) {
-      var_dump($err);
+      $this->userIsUnauthorized();
     }
   }
 }

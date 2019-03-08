@@ -10,6 +10,10 @@ class GetAccountView {
     $this->navigator = $navigator;
   }
 
+  public function userWantsToViewAccount() : bool {
+    return ($this->navigator->isValidAPICall() && $this->navigator->isGET() && $this->getDesiredAccount() !== null);
+  }
+
   public function getDesiredAccount() : string {
     return $this->navigator->getRelevantAccount();
   }
