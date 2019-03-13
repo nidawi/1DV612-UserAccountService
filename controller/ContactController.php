@@ -18,10 +18,13 @@ class ContactController {
 
       if ($this->view->userWantsToAddContactMethods())
         $this->doAddContactMethods($username);
+      else if ($this->view->userWantsToUpdateContactMethod())
+        $this->doUpdateContactMethod($username);
       else if ($this->view->userWantsToDeleteContactMethods())
         $this->doDeleteContactMethod($username);
       else
         $this->doGetContactMethods($username);
+
 
     } catch (\Exception $err) {
       $this->view->methodInteractionFailed($err);
@@ -34,6 +37,7 @@ class ContactController {
     $contactMethods = $this->register->getAccountContactMethods($username);
     $this->view->methodRetrievalSuccessful($contactMethods);
   }
+
   private function doAddContactMethods(string $username) {
     $methodsToAdd = $this->view->getMethodsToAdd();
     if (count($methodsToAdd) < 1)
@@ -42,6 +46,17 @@ class ContactController {
     $this->register->addAccountContactMethods($username, $methodsToAdd);
     $this->view->methodCreationSuccessful();
   }
+
+  private function doUpdateContactMethod(string $username) {
+    $updates = $this->view->getMethodUpdate();
+    if (!isset($updates)) {
+      throw new \view\NothingToUpdateException();
+    }
+    
+    $this->register->updateAccountContactMethod($username, $updates);
+    $this->view->methodUpdateSuccessful();
+  }
+
   private function doDeleteContactMethod(string $username) {
     $typeToDelete = $this->view->getSelectedMethodType();
     if (!isset($typeToDelete) || strlen($typeToDelete) < 2)

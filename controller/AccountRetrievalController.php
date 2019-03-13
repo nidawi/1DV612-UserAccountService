@@ -12,17 +12,35 @@ class AccountRetrievalController {
     $this->view = $view;
   }
 
-  public function doRetrieveAccount() {
+  public function doAccessAccountRetrieval() {
     try {
-      $accountName = $this->view->getDesiredAccount();
-      $account = $this->register->getAccount($accountName);
-      $this->view->accountRetrievalSuccessful($account);
+      if ($this->view->userWantsToViewAccountsSubscribedToOrganization())
+        $this->doGetAccounts();
+      else if ($this->view->userWantsToAuthenticateAccount())
+        $this->doAuthenticateAccount();
+      else
+        $this->doRetrieveAccount();
+      
     } catch (\Exception $err) {
       $this->view->accountRetrievalUnsuccessful($err);
     }
   }
+  
+  private function doRetrieveAccount() {
+    $accountName = $this->view->getDesiredAccount();
+    $account = $this->register->getAccount($accountName);
+    $this->view->accountRetrievalSuccessful($account);
+  }
 
-  public function doRetrieveAccountItems() {
-    
+  private function doGetAccounts() {
+    $org = $this->view->getSelectedOrganization();
+    $result = $this->register->getAccounts($org);
+    $this->view->accountsRetrievedSuccessfully($result);
+  }
+
+  private function doAuthenticateAccount() {
+    $credentials = $this->view->getAuthentication();
+    $account = $this->register->authenticateAccount($credentials);
+    $this->view->accountRetrievalSuccessful($account);
   }
 }

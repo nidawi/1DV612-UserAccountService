@@ -7,12 +7,14 @@ require_once 'AccountRetrievalController.php';
 require_once 'ContactController.php';
 require_once 'ItemsController.php';
 require_once 'AccountUpdateController.php';
+require_once 'SettingsController.php';
 require_once __DIR__ . '/../view/NavigatorView.php';
 require_once __DIR__ . '/../view/GetAccountView.php';
 require_once __DIR__ . '/../view/CreateAccountView.php';
 require_once __DIR__ . '/../view/ItemsView.php';
 require_once __DIR__ . '/../view/ContactView.php';
 require_once __DIR__ . '/../view/UpdateAccountView.php';
+require_once __DIR__ . '/../view/SettingsView.php';
 
 class ApplicationController {
 
@@ -21,6 +23,7 @@ class ApplicationController {
   private $itemsController;
   private $contactController;
   private $updateController;
+  private $settingsController;
 
   private $navigatorView;
   private $createAccountView;
@@ -28,6 +31,7 @@ class ApplicationController {
   private $itemsView;
   private $contactView;
   private $updateView;
+  private $settingsView;
 
   public function __construct(\model\AccountRegister $register) {
     $this->createViews();
@@ -41,10 +45,12 @@ class ApplicationController {
         $this->itemsController->doItemInteractions();
       else if ($this->contactView->userWantsToAccessContactMethods())
         $this->contactController->doContactInteraction();
+      else if ($this->settingsView->userWantsToAccessSettings())
+        $this->settingsController->doSettingsInteraction();
+      else if ($this->getAccountView->userWantstoAccessAccountRetrieval())
+        $this->retrievalController->doAccessAccountRetrieval();
       else if ($this->createAccountView->userWantsToCreateAccount())
         $this->creationController->doCreateAccount();
-      else if ($this->getAccountView->userWantsToViewAccount())
-        $this->retrievalController->doRetrieveAccount();
       else if ($this->updateView->userWantsToUpdateAccount())
         $this->updateController->doUpdateAccount();
       else
@@ -61,6 +67,7 @@ class ApplicationController {
     $this->itemsController = new \controller\ItemsController($register, $this->itemsView);
     $this->contactController = new \controller\ContactController($register, $this->contactView);
     $this->updateController = new \controller\AccountUpdateController($register, $this->updateView);
+    $this->settingsController = new \controller\SettingsController($register, $this->settingsView);
   }
   private function createViews() {
     $this->navigatorView = new \view\Navigator();
@@ -69,5 +76,6 @@ class ApplicationController {
     $this->itemsView = new \view\ItemsView($this->navigatorView);
     $this->contactView = new \view\ContactView($this->navigatorView);
     $this->updateView = new \view\UpdateAccountView($this->navigatorView);
+    $this->settingsView = new \view\SettingsView($this->navigatorView);
   }
 }

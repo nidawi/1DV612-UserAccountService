@@ -132,6 +132,8 @@ class Database {
     switch ($type) {
       case "string": case "integer": case "double":
         return substr($type, 0, 1);
+      case "boolean":
+        return "i";
       default:
         throw new InvalidDatabaseTypeException();
     }

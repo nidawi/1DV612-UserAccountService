@@ -11,6 +11,9 @@ class Navigator {
   
   private static $accountItemsLink = "items";
   private static $contactMethodLink = "contact";
+  private static $authenticateLink = "auth";
+  private static $settingsLink = "settings";
+  private static $orgLink = "org";
 
   private $activeJwt;
 
@@ -43,12 +46,27 @@ class Navigator {
   public function isDELETE() : bool {
     return $this->isRequestMethod("DELETE");
   }
+  public function isPatch() : bool {
+    return $this->isRequestMethod("PATCH");
+  }
 
   public function getItemsLink() : string {
     return self::$accountItemsLink;
   }
   public function getContactsLink() : string {
     return self::$contactMethodLink;
+  }
+  public function getAuthenticateLink() : string {
+    return self::$authenticateLink;
+  }
+  public function getSettingsLink() : string {
+    return self::$settingsLink;
+  }
+  public function getMainAPILink() : string {
+    return self::$accountLink;
+  }
+  public function getOrgLink() : string {
+    return self::$orgLink;
   }
 
   public function isValidAPICall() : bool {
@@ -113,7 +131,7 @@ class Navigator {
     return (isset($_SERVER["HTTP_ACCEPT"]) && in_array($_SERVER["HTTP_ACCEPT"], self::$acceptedContentTypes));
   }
   private function isValidRequestMethod() : bool {
-    return ($this->isRequestMethod("POST") || $this->isRequestMethod("GET") || $this->isRequestMethod("DELETE"));
+    return ($this->isRequestMethod("POST") || $this->isRequestMethod("PATCH") || $this->isRequestMethod("GET") || $this->isRequestMethod("DELETE"));
   }
   private function isRequestMethod(string $method) : bool {
     return $this->getRequestMethod() === $method;

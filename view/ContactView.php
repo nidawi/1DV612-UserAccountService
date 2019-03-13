@@ -21,6 +21,9 @@ class ContactView {
   public function userWantsToAddContactMethods() : bool {
     return $this->navigator->isPOST();
   }
+  public function userWantsToUpdateContactMethod() : bool {
+    return $this->navigator->isPATCH();
+  }
   public function userWantsToDeleteContactMethods() : bool {
     return $this->navigator->isDELETE();
   }
@@ -37,6 +40,16 @@ class ContactView {
     }, $this->body);
     return $methods;
   }
+  public function getMethodUpdate() : \model\AccountContact {
+    return new \model\AccountContact(
+      array(
+        "account" => $this->getDesiredAccount(),
+        "type" => $this->getSelectedMethodType(),
+        "value" => $this->body["value"] ?? "",
+        "enabled" => $this->body["enabled"] ?? ""
+      )
+    );
+  }
 
 
   public function methodRetrievalSuccessful(array $items) {
@@ -47,6 +60,10 @@ class ContactView {
     }, $items);
 
     echo json_encode($result);
+  }
+  public function methodUpdateSuccessful() {
+    http_response_code(200);
+    echo "";
   }
   public function methodCreationSuccessful() {
     http_response_code(201);
@@ -74,21 +91,17 @@ class ContactView {
         $code = 404;
         break;
       case $err instanceof \model\InvalidValueException:
-        $message = "Invalid Contact Method value detected: '" . $err->getMessage() . "'.";
-        $code = 400;
-        break;
-      case $err instanceof \view\NothingToAddException:
-        $message = "Nothing to add.";
-        $code = 400;
-        break;
-      case $err instanceof \view\NothingToDeleteException:
-        $message = "Nothing to delete.";
-        $code = 400;
-        break;
       case $err instanceof \TypeError:
-        $message = "One or more input parameters were invalid or missing.";
-        $code = 400;
-        break;
+          $message = "One or more values are invalid or missing.";
+          $code = 400;
+          break;
+      case $err instanceof \model\UpdateParamtersMissingException:
+      case $err instanceof \model\NothingToCommitException:
+      case $err instanceof \view\NothingToAddException:
+      case $err instanceof \view\NothingToDeleteException:
+          $message = "Nothing to update. Details missing or identical to current.";
+          $code = 200;
+          break;
     }
     $this->navigator->errorOccured($code, $message);
   }
@@ -97,7 +110,7 @@ class ContactView {
     return isset($this->body) && is_array($this->body);
   }
   private function getJSONBody() : array {
-    if ($this->userWantsToAddContactMethods()) {
+    if ($this->userWantsToAddContactMethods() || $this->userWantsToUpdateContactMethod()) {
       try {
         $inputJSON = file_get_contents('php://input');
         $json = json_decode($inputJSON, TRUE);

@@ -10,7 +10,7 @@ class AccountContact {
   private $enabled;
   
   private static $availableTypes = array(
-    "email"
+    "email", "push"
   );
 
   public function __construct(array $contactData) {
@@ -56,8 +56,9 @@ class AccountContact {
   }
 
   private function isValidValue($value) : bool {
-    if ($this->type === "email") {
+    if ($this->type !== "email") 
+      return true;
+    else
       return preg_match("/^.*@.*\..*$/", $value);
-    } else return true;
   }
 }

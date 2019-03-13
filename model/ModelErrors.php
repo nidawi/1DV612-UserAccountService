@@ -16,6 +16,9 @@ class NothingToCommitException extends \Exception {}
 class ContactMethodAlreadyExistsException extends \Exception {}
 class ContactMethodDoesNotExistException extends \Exception {}
 
+class SettingsAlreadyExistException extends \Exception {}
+class SettingsDoNotExistException extends \Exception {}
+
 class InvalidValueException extends \Exception {
   public function __construct(string $message) {
     parent::__construct($message);
