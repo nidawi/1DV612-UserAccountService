@@ -83,7 +83,7 @@ class SettingsView {
         break;
       case $err instanceof \model\SettingsAlreadyExistException:
         $message = "Settings already exist.";
-        $code = 400;
+        $code = 409;
         break;
       case $err instanceof \model\UpdateParamtersMissingException:
       case $err instanceof \model\NothingToCommitException:
